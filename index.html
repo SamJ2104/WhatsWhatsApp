@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who Said It?</title>
+    <style>
+        body {
+            font-family: "Noto Sans", Helvetica;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #25D366;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #message {
+            font-size: 1.2em;
+            margin: 20px 0;
+
+        }
+        .button-container {
+            margin: 20px 0;
+            
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            border-radius: 25px;
+            border-style: dotted;
+            background-color: #fff;
+            border-color: #075354;
+        }
+    </style>
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Who Said It?</h1>
+        <input type="file" id="fileInput">
+        <div id="messageContainer" style="display:none;">
+            <i><div id="message"></div></i>
+            <div class="button-container">
+                <button id="guess1"></button>
+                <button id="guess2"></button>
+            </div>
+        </div>
+        <div id="result" style="display:none;"></div>
+    </div>
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const messageContainer = document.getElementById('messageContainer');
+        const messageDiv = document.getElementById('message');
+        const guess1Button = document.getElementById('guess1');
+        const guess2Button = document.getElementById('guess2');
+        const resultDiv = document.getElementById('result');
+        
+        let messages = [];
+        let participants = new Set();
+
+        fileInput.addEventListener('change', handleFileUpload);
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    parseChat(text);
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function parseChat(text) {
+            messages = [];
+            participants.clear();
+            const lines = text.split('\n');
+            const regex = /^\[\d{1,2}\/\d{1,2}\/\d{2,4}, \d{1,2}:\d{2}:\d{2} ?[APM]{0,2}\] (.*?): (.*)$/;
+
+            lines.forEach(line => {
+                const match = line.match(regex);
+                if (match) {
+                    const name = match[1].trim();
+                    const message = match[2].trim();
+                    if (message.length > 10) {
+                        messages.push({ name, message });
+                        participants.add(name);
+                    }
+                }
+            });
+
+            if (participants.size >= 2) {
+                displayRandomMessage();
+            } else {
+                alert('Not enough participants in the chat.');
+            }
+        }
+
+        function displayRandomMessage() {
+            resultDiv.style.display = 'none';
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const actualSender = randomMessage.name;
+            const otherParticipants = Array.from(participants).filter(p => p !== actualSender);
+            const randomOther = otherParticipants[Math.floor(Math.random() * otherParticipants.length)];
+
+            const options = shuffle([actualSender, randomOther]);
+
+            messageDiv.textContent = randomMessage.message;
+            guess1Button.textContent = options[0];
+            guess2Button.textContent = options[1];
+
+            guess1Button.onclick = () => checkGuess(options[0], actualSender);
+            guess2Button.onclick = () => checkGuess(options[1], actualSender);
+
+            messageContainer.style.display = 'block';
+        }
+
+        function checkGuess(selected, actual) {
+            resultDiv.style.display = 'block';
+            if (selected === actual) {
+                resultDiv.textContent = 'Correct!';
+            } else {
+                resultDiv.textContent = `Wrong! It was ${actual}.`;
+            }
+            setTimeout(displayRandomMessage, 2000);
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+    </script>
+</body>
+</html>

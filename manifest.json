@@ -1,0 +1,17 @@
+{
+    "name": "Who Said It?",
+    "short_name": "Who Said It?",
+    "description": "A web app to guess who said what(sapp).",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#25D366",
+    "theme_color": "#25D366",
+    "icons": [
+      {
+        "src": "icon.png",
+        "type": "image/png",
+        "sizes": "192x192"
+      }
+    ]
+  }
+  
